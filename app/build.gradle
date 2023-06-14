@@ -3,7 +3,11 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-kapt'
     id 'dagger.hilt.android.plugin'
-   // id 'com.google.devtools.ksp' version '1.6.10-1.0.2'
+    id 'org.jetbrains.kotlin.plugin.serialization' version '1.5.10'
+}
+
+ext {
+    news_api_key = '310f1b56ed3e4f60b68464c2b8b5275a'
 }
 
 kotlin {
@@ -19,16 +23,19 @@ kotlin {
 
 
 android {
-    compileSdk 32
+    compileSdk 33
 
     defaultConfig {
         applicationId "com.example.atomic_cinema"
         minSdk 21
-        targetSdk 32
+        targetSdk 33
         versionCode 1
         versionName "1.0"
 
+        multiDexEnabled = true
+
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
         vectorDrawables {
             useSupportLibrary true
         }
@@ -40,7 +47,14 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    buildFeatures {
+        compose = true
+        viewBinding = true
+    }
+
     compileOptions {
+        coreLibraryDesugaringEnabled = true
+
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
@@ -83,11 +97,15 @@ dependencies {
     // Compose dependencies
     implementation "androidx.lifecycle:lifecycle-viewmodel-compose:2.4.1"
 
+    def hilt_version = "2.43"
+
     //Dagger - Hilt
-    implementation "com.google.dagger:hilt-android:2.40.5"
-    kapt "com.google.dagger:hilt-android-compiler:2.40.5"
-    implementation "androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha03"
+    implementation "com.google.dagger:hilt-android:$hilt_version"
+    implementation "com.google.dagger:dagger-android-support:$hilt_version"
+    kapt "com.google.dagger:hilt-android-compiler:$hilt_version"
     kapt "androidx.hilt:hilt-compiler:1.0.0"
+    implementation "com.google.dagger:dagger:$hilt_version"
+    kapt "com.google.dagger:dagger-android-processor:$hilt_version"
     implementation 'androidx.hilt:hilt-navigation-compose:1.0.0'
 
     // Retrofit
@@ -95,12 +113,19 @@ dependencies {
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
     implementation 'com.squareup.retrofit2:converter-moshi:2.9.0'
 
-    // Compose Nav Destinations
-   // implementation 'io.github.raamcosta.compose-destinations:core:1.1.2-beta'
-   // ksp 'io.github.raamcosta.compose-destinations:ksp:1.1.2-beta'
     //Gson
     implementation "com.fasterxml.jackson.core:jackson-databind:2.8.5"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.8.6"
+    implementation "com.himanshoe:kalendar:1.2.0"
 
+    implementation "io.coil-kt:coil-compose:2.0.0"
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:1.2.2")
+    kapt "org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.4.2"
+    implementation "org.jetbrains.kotlinx:kotlinx-datetime:0.3.2"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.0"
+    implementation 'com.github.dfloureiro:news-api-kotlin:v2.1'
+
+
+
+
 }

@@ -16,6 +16,6 @@ data class AuthState(
     val signUpLastNameChanged : String = "",
     val signUpNumberPhoneChanged : String = "",
     val signUpDateOfBirthChanged : String = "",
-    val userID : String = "",
+    val userID : Int = 0,
     val role : String = ""
 )

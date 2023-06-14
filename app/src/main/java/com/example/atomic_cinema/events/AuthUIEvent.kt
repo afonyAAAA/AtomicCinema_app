@@ -11,6 +11,7 @@ sealed class AuthUIEvent{
     data class SignUpNumberPhoneChanged(val value: String) : AuthUIEvent()
     data class SignUpDateOfBirthChanged(val value: String) : AuthUIEvent()
     data class Role(val value : String) : AuthUIEvent()
+    data class UserID(val value : Int) : AuthUIEvent()
     data class Authorized(val value: Boolean) : AuthUIEvent()
     object Authenticate : AuthUIEvent()
     object SignUp : AuthUIEvent()

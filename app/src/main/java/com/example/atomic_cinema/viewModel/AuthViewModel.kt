@@ -30,7 +30,7 @@ class AuthViewModel @Inject constructor(
     private val resultChannel = Channel<AuthResult<Unit>>()
     val authResults = resultChannel.receiveAsFlow()
 
-    init {
+    init{
         authenticate()
     }
 
@@ -67,16 +67,7 @@ class AuthViewModel @Inject constructor(
                 state = state.copy(role = event.value)
             }
             is AuthUIEvent.Authorized ->{
-
                 state = state.copy(authorized = event.value)
-
-                viewModelScope.launch {
-                    while(!state.authorized){
-                        onEvent(AuthUIEvent.Authenticate)
-                        delay(2000L)
-                    }
-                }
-
             }
             is AuthUIEvent.Authenticate -> {
                 authenticate()
@@ -91,6 +82,9 @@ class AuthViewModel @Inject constructor(
                 goOut()
                 onEvent(AuthUIEvent.Authorized(false))
             }
+            is AuthUIEvent.UserID -> {
+                state = state.copy(userID = event.value)
+            }
         }
     }
 
@@ -102,6 +96,7 @@ class AuthViewModel @Inject constructor(
 
             state = state.copy(isLoading = true)
 
+            //holy shit...
             val formattedDate = LocalDate.of(
                 state.signUpDateOfBirthChanged.substring(4..7).toInt(),
                 if(state.signUpDateOfBirthChanged[2].code != 0){
@@ -130,7 +125,6 @@ class AuthViewModel @Inject constructor(
             resultChannel.send(result)
 
             state = state.copy(isLoading = false)
-
         }
     }
 
@@ -144,9 +138,12 @@ class AuthViewModel @Inject constructor(
                 password = state.signInPasswordChanged
             )
 
-            resultChannel.send(result)
-
-            state = state.copy(isLoading = false)
+            if(result is AuthResult.Authorized){
+                authenticate()
+            }else{
+                resultChannel.send(result)
+                state = state.copy(isLoading = false)
+            }
 
         }
     }
@@ -164,16 +161,19 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    private fun authenticate(content : () -> Unit = {}){
+    private fun authenticate(){
         viewModelScope.launch {
             state = state.copy(isLoading = true)
 
             val result = repository.authenticate()
 
             if(result.data != null){
-                content()
-                onEvent(AuthUIEvent.Role(result.data.role))
+                onEvent(AuthUIEvent.Authorized(true))
                 resultChannel.send(AuthResult.Authorized())
+                onEvent(AuthUIEvent.UserID(result.data.id))
+                onEvent(AuthUIEvent.Role(result.data.role))
+            }else{
+                resultChannel.send(AuthResult.Unauthorized())
             }
 
             state = state.copy(isLoading = false)

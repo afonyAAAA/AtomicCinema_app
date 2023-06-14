@@ -1,18 +1,21 @@
 package com.example.atomic_cinema.server.profile
 
-import com.example.atomic_cinema.RequiredAuth
-import com.example.atomic_cinema.server.auth.SecretInfoResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
 
-interface ProfileApi : RequiredAuth {
+interface ProfileApi {
 
     @GET("profile")
     suspend fun getProfileInfo(
         @Header("Authorization") token : String,
     ) : ProfileResponse
+
+    @GET("getPaymentsForMonth")
+    suspend fun getProfileInfoPaymentsForMonth(
+        @Header("Authorization") token : String,
+    ) : ProfileResponsePaymentsInfo
 
     @POST("profile/edit")
     suspend fun editProfile(
@@ -20,8 +23,10 @@ interface ProfileApi : RequiredAuth {
         @Body request: ProfileEditRequest
     )
 
-    @GET("authenticate")
-    override suspend fun authenticate(
-        @Header("Authorization") token : String
-    ) : SecretInfoResponse
+    @POST("/updateBalance")
+    suspend fun updateBalance(
+        @Header("Authorization") token : String,
+        @Body balance: ProfileBalanceRequest
+    )
+
 }

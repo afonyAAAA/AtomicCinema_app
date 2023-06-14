@@ -1,7 +1,6 @@
 package com.example.atomic_cinema.viewModel
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,9 +31,7 @@ class ProfileViewModel @Inject constructor(
     val profileResults = resultChannel.receiveAsFlow()
 
     init {
-        authenticate{
-            showProfile()
-        }
+        showProfile()
     }
 
     fun onEvent(event : ProfileUIEvent){
@@ -60,9 +57,6 @@ class ProfileViewModel @Inject constructor(
             is ProfileUIEvent.Role -> {
                 state = state.copy(role = event.value)
             }
-            is ProfileUIEvent.EditProfile ->{
-                editProfile()
-            }
             is ProfileUIEvent.EditMode ->{
                 state = state.copy(editMode = event.value)
                 copyState = state
@@ -71,8 +65,40 @@ class ProfileViewModel @Inject constructor(
                 state = copyState
                 state = state.copy(editMode = event.value)
             }
+            is ProfileUIEvent.LoadingMoneyOperation -> {
+                state = state.copy(loadingMoneyOperation = event.value)
+            }
+            is ProfileUIEvent.ReplenishBalanceChanged -> {
+                state = state.copy(replenishBalanceMode = event.value)
+            }
+            is ProfileUIEvent.SumReplenish -> {
+                state = state.copy(sumReplenish = event.value)
+            }
+            is ProfileUIEvent.ViewBalance ->{
+                state = state.copy(viewBalance = event.value)
+            }
+            is ProfileUIEvent.ConfirmReplenish -> {
+                replenishBalance(event.value, state.balance.toDouble())
+            }
+            is ProfileUIEvent.MoneyOperationIsSuccessful ->{
+                state = state.copy(moneyOperationIsSuccessful = event.value)
+            }
+            is ProfileUIEvent.BalanceChanged -> {
+                state = state.copy(balance = event.value)
+            }
+            is ProfileUIEvent.ConfirmSubtract -> {
+                subtractBalance(event.value, state.balance.toDouble())
+            }
+            ProfileUIEvent.GenerateSpendingReport -> {
+                generateSpendingReport()
+            }
+            ProfileUIEvent.ShowProfile -> {
+                showProfile()
+            }
+            ProfileUIEvent.EditProfile ->{
+                editProfile()
+            }
         }
-
     }
 
     private fun showProfile(){
@@ -88,6 +114,7 @@ class ProfileViewModel @Inject constructor(
                 onEvent(ProfileUIEvent.LastNameChanged(result.data.lastName))
                 onEvent(ProfileUIEvent.NumberPhoneChanged(result.data.numberPhone))
                 onEvent(ProfileUIEvent.DateOfBirthChanged(result.data.dateOfBirth.replace(".", "")))
+                onEvent(ProfileUIEvent.BalanceChanged(result.data.balance))
 
                 resultChannel.send(ProfileResult.Shown())
             }else{
@@ -98,23 +125,68 @@ class ProfileViewModel @Inject constructor(
 
         }
     }
-    private fun authenticate(content : () -> Unit){
+
+    private fun replenishBalance(sumReplenish : Double, balance : Double){
         viewModelScope.launch {
+
+            if(sumReplenish <= 100.0){
+                resultChannel.send(ProfileResult.FewReplenish())
+            }else{
+                onEvent(ProfileUIEvent.LoadingMoneyOperation(true))
+
+                state = state.copy(isLoading = true)
+
+                val result = repository.updateBalance((balance + sumReplenish).toString())
+
+                resultChannel.send(result)
+
+                state = state.copy(isLoading = false)
+            }
+        }
+    }
+
+    private fun generateSpendingReport(){
+        viewModelScope.launch {
+
             state = state.copy(isLoading = true)
 
-            val result = repository.authenticate()
-
+            val result = repository.getProfileInfoPaymentsForMonth()
 
             if(result.data != null){
-                Log.d("МИША ВСЕ ХУЙНЯ", "ХУЙ")
-                onEvent(ProfileUIEvent.Role(result.data.role))
-                resultChannel.send(ProfileResult.Authorized())
-                content()
+                with(result.data){
+                    state = state.copy(
+                        sumSpending = sumPay,
+                        countTicketSpending = countTickets
+                    )
+                }
+            }else{
+                resultChannel.send(ProfileResult.NotFoundTicketsForMonth())
             }
 
             state = state.copy(isLoading = false)
         }
     }
+
+    private fun subtractBalance(sumPay : Double, balance : Double){
+        viewModelScope.launch {
+
+            if(sumPay > balance){
+                resultChannel.send(ProfileResult.InsufficientFunds())
+            }else{
+                onEvent(ProfileUIEvent.LoadingMoneyOperation(true))
+
+                state = state.copy(isLoading =  true)
+
+                val result = repository.updateBalance((balance - sumPay).toString())
+
+                resultChannel.send(result)
+
+                state = state.copy(isLoading =  false)
+            }
+        }
+    }
+
+
 
 
     private fun editProfile(){

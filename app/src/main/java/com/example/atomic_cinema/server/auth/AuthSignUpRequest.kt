@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.google.gson.TypeAdapter
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 
@@ -29,3 +31,16 @@ class LocalDateTypeAdapter : TypeAdapter<LocalDate>() {
     override fun read(input: com.google.gson.stream.JsonReader?): LocalDate =  LocalDate.parse(input!!.nextString())
 
 }
+
+@SuppressLint("NewApi")
+class LocalTimeTypeAdapter : TypeAdapter<LocalTime>() {
+
+    override fun write(out: com.google.gson.stream.JsonWriter?, value: LocalTime?) {
+        val time = value?.format(DateTimeFormatter.ofPattern("HH:mm"))
+        out?.value(time)
+    }
+
+    override fun read(input: com.google.gson.stream.JsonReader?): LocalTime =  LocalTime.parse(input!!.nextString())
+
+}
+

@@ -1,8 +1,6 @@
 package com.example.atomic_cinema.server.profile
 
 import android.content.SharedPreferences
-import android.util.Log
-import com.example.atomic_cinema.server.auth.SecretInfoResponse
 import retrofit2.HttpException
 import java.time.LocalDate
 
@@ -16,6 +14,45 @@ class ProfileRepositoryImpl(
             val token = prefs.getString("jwt", null) ?: return ProfileResult.Unauthorized()
             val response = api.getProfileInfo("Bearer $token")
             ProfileResult.Shown(response)
+        }catch (e : HttpException){
+            if(e.code() == 401){
+                ProfileResult.Unauthorized()
+            }else{
+                ProfileResult.UnknownError()
+            }
+        }catch (e : Exception){
+            ProfileResult.UnknownError()
+        }
+    }
+
+    override suspend fun getProfileInfoPaymentsForMonth(): ProfileResult<ProfileResponsePaymentsInfo> {
+        return try{
+            val token = prefs.getString("jwt", null) ?: return ProfileResult.Unauthorized()
+            val response = api.getProfileInfoPaymentsForMonth("Bearer $token")
+            ProfileResult.Shown(response)
+        }catch (e : HttpException){
+            if(e.code() == 401){
+                ProfileResult.Unauthorized()
+            }else if(e.code() == 404){
+                ProfileResult.NotFoundTicketsForMonth()
+            }else{
+                ProfileResult.UnknownError()
+            }
+        }catch (e : Exception){
+            ProfileResult.UnknownError()
+        }
+    }
+
+    override suspend fun updateBalance(balance : String): ProfileResult<Unit> {
+        return try{
+            val token = prefs.getString("jwt", null) ?: return ProfileResult.Unauthorized()
+             api.updateBalance(
+                 "Bearer $token",
+                 ProfileBalanceRequest(
+                     balance = balance
+                 )
+             )
+            ProfileResult.MoneyOperationIsSuccessful()
         }catch (e : HttpException){
             if(e.code() == 401){
                 ProfileResult.Unauthorized()
@@ -56,24 +93,6 @@ class ProfileRepositoryImpl(
             }
         }catch (e : Exception){
             e.printStackTrace()
-            ProfileResult.UnknownError()
-        }
-    }
-
-    override suspend fun authenticate(): ProfileResult<SecretInfoResponse> {
-        return try{
-            val token = prefs.getString("jwt", null) ?: return ProfileResult.Unauthorized()
-            val userSecretInfo = api.authenticate("Bearer $token")
-            ProfileResult.Authorized(SecretInfoResponse(
-                role = userSecretInfo.role
-            ))
-        }catch (e : HttpException ){
-            if(e.code() == 401){
-                ProfileResult.Unauthorized()
-            }else{
-                ProfileResult.UnknownError()
-            }
-        }catch (e : Exception){
             ProfileResult.UnknownError()
         }
     }

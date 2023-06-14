@@ -2,6 +2,6 @@
 <resources>
 
     <style name="Theme.Atomic_cinema" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:statusBarColor">@color/red_700</item>
+        <item name="android:statusBarColor">@color/red_500</item>
     </style>
 </resources>

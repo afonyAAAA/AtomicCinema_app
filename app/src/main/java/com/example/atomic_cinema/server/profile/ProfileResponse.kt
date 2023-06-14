@@ -7,4 +7,5 @@ data class ProfileResponse(
     val name: String,
     val lastName: String,
     val numberPhone: String,
+    val balance : String
 )

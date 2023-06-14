@@ -35,12 +35,13 @@ class AuthRepositoryImpl(
         }catch (e : HttpException){
             if(e.code() == 401){
                 AuthResult.Unauthorized()
-            }else{
-                e.printStackTrace()
+            }else if (e.code() == 409){
+                AuthResult.UserIsAlreadyExist()
+            }
+            else{
                 AuthResult.UnknownError()
             }
         }catch (e : Exception){
-            e.printStackTrace()
             AuthResult.UnknownError()
         }
     }
@@ -54,10 +55,11 @@ class AuthRepositoryImpl(
                     .apply()
                 AuthResult.Authorized()
             }catch (e : HttpException ){
-                if(e.code() == 401){
-                    AuthResult.Unauthorized()
-                }else{
-                    AuthResult.UnknownError()
+                when(e.code()){
+                    401 -> AuthResult.Unauthorized()
+                    404 -> AuthResult.UserNotFound()
+                    400 -> AuthResult.NotValidPassword()
+                    else -> AuthResult.UnknownError()
                 }
             }catch (e : Exception){
                 AuthResult.UnknownError()
@@ -69,6 +71,7 @@ class AuthRepositoryImpl(
             val token = prefs.getString("jwt", null) ?: return AuthResult.Unauthorized()
             val userSecretInfo = api.authenticate("Bearer $token")
             AuthResult.Authorized(SecretInfoResponse(
+                id = userSecretInfo.id,
                 role = userSecretInfo.role
             ))
         }catch (e : HttpException ){

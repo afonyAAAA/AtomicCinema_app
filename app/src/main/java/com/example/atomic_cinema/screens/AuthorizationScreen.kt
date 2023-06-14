@@ -1,6 +1,7 @@
 package com.example.atomic_cinema.screens
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -19,6 +20,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavOptions
+import com.example.atomic_cinema.MainActivity
 import com.example.atomic_cinema.events.AuthUIEvent
 import com.example.atomic_cinema.navigation.NavRoutes
 import com.example.atomic_cinema.server.auth.AuthResult
@@ -28,41 +31,68 @@ import com.example.atomic_cinema.viewModel.AuthViewModel
 
 @SuppressLint("NewApi", "UnusedMaterialScaffoldPaddingParameter")
 @Composable
-fun AuthorizationScreen(navHostController: NavHostController, viewModel : AuthViewModel = hiltViewModel()){
+fun AuthorizationScreen(
+    navHostController: NavHostController,
+    viewModelAuth: AuthViewModel = hiltViewModel(),
+){
 
-    var state = viewModel.state
+    val state = viewModelAuth.state
     val context = LocalContext.current
 
     var passwordVisibility by remember { mutableStateOf(false) }
     var buttonIsEnabled by remember{ mutableStateOf(false) }
 
-    LaunchedEffect(viewModel, context){
-        viewModel.authResults.collect{ result ->
+    LaunchedEffect(viewModelAuth, context){
+        viewModelAuth.authResults.collect{ result ->
             when(result){
                 is AuthResult.Unauthorized -> {
-                    StateAuthorized.value = false
+//                    Toast.makeText(
+//                        context,
+//                        "Попытка авторизации не удалась.",
+//                        Toast.LENGTH_LONG).show()
                 }
                 is AuthResult.UnknownError -> {
-
                     Toast.makeText(
                         context,
-                        "Неизвестная ошибка, попробуйте снова позже",
+                        "Неизвестная ошибка, попробуйте снова позже.",
                         Toast.LENGTH_LONG).show()
-
-                    StateAuthorized.value = false
-
                 }
                 is AuthResult.Authorized -> {
-
-                    StateAuthorized.value = true
-
                     Toast.makeText(
                         context,
-                        "Вы успешно авторизовались",
+                        "Вы успешно авторизовались.",
                         Toast.LENGTH_LONG).show()
 
-                    navHostController.navigate(NavRoutes.Main.route)
+                    val intent = Intent(context, MainActivity::class.java)
+                    context.startActivity(intent)
+                }
+                is AuthResult.Registered -> {
+                    Toast.makeText(
+                        context,
+                        "Аккаунт создан.",
+                        Toast.LENGTH_LONG).show()
 
+                }
+                is AuthResult.UserIsAlreadyExist -> {
+                    Toast.makeText(
+                        context,
+                        "Ошибка. Такой пользователь уже существует.",
+                        Toast.LENGTH_LONG).show()
+
+                }
+                is AuthResult.CameOut -> TODO()
+                is AuthResult.NotValidPassword -> {
+                    Toast.makeText(
+                        context,
+                        "Неверный пароль.",
+                        Toast.LENGTH_LONG).show()
+                }
+                is AuthResult.OK -> TODO()
+                is AuthResult.UserNotFound -> {
+                    Toast.makeText(
+                        context,
+                        "Пользователя с таким логином не существует.",
+                        Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -80,33 +110,36 @@ fun AuthorizationScreen(navHostController: NavHostController, viewModel : AuthVi
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxSize()
         ) {
-            RoundedTextField(
-                label = "Логин",
-                value = state.signInLoginChanged,
-                placeholder = "Логин",
-                notNull = true,
-                onValueChange = {viewModel.onEvent(AuthUIEvent.SignInLoginChanged(it))})
+            Box(Modifier.widthIn(min = 350.dp, max = 350.dp), contentAlignment = Alignment.Center){
+                Column{
+                    RoundedTextField(
+                        label = "Логин",
+                        value = state.signInLoginChanged,
+                        placeholder = "Логин",
+                        notNull = true,
+                        onValueChange = {viewModelAuth.onEvent(AuthUIEvent.SignInLoginChanged(it))})
 
-            RoundedTextField(
-                label = "Пароль",
-                placeholder = "Введите пароль",
-                notNull = true,
-                visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
-                trailingIcon = {
-                    IconButton(onClick = { passwordVisibility = !passwordVisibility }) {
-                        Icon(
-                            imageVector = if (passwordVisibility) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                            contentDescription = if (passwordVisibility) "Скрыть пароль" else "Показать пароль"
-                        )
-                    }
-                },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                value = state.signInPasswordChanged,
-                onValueChange = {viewModel.onEvent(AuthUIEvent.SignInPasswordChanged(it))}
-            )
-
+                    RoundedTextField(
+                        label = "Пароль",
+                        placeholder = "Введите пароль",
+                        notNull = true,
+                        visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { passwordVisibility = !passwordVisibility }) {
+                                Icon(
+                                    imageVector = if (passwordVisibility) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                                    contentDescription = if (passwordVisibility) "Скрыть пароль" else "Показать пароль"
+                                )
+                            }
+                        },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        value = state.signInPasswordChanged,
+                        onValueChange = {viewModelAuth.onEvent(AuthUIEvent.SignInPasswordChanged(it))}
+                    )
+                }
+            }
             Button(
-                onClick = {viewModel.onEvent(AuthUIEvent.SignIn)},
+                onClick = {viewModelAuth.onEvent(AuthUIEvent.SignIn)},
                 Modifier.padding(16.dp),
                 enabled = buttonIsEnabled) {
                 Text(text = "Потвердить")

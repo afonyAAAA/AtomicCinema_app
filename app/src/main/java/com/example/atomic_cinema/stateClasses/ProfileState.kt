@@ -9,5 +9,13 @@ data class ProfileState(
     val numberPhoneChanged : String = "",
     val dateOfBirthChanged : String = "",
     val editMode : Boolean = false,
-    val role : String = ""
+    val role : String = "",
+    val balance : String = "",
+    val viewBalance : Boolean = false,
+    val loadingMoneyOperation : Boolean = false,
+    val replenishBalanceMode : Boolean = false,
+    val sumReplenish : String = "",
+    val moneyOperationIsSuccessful : Boolean = false,
+    val sumSpending : Double = 0.0,
+    val countTicketSpending : Int = 0
 )
