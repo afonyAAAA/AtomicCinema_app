@@ -15,6 +15,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AirplaneTicket
+import androidx.compose.material.icons.rounded.ConfirmationNumber
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,6 +24,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavDestination
@@ -183,10 +185,9 @@ fun LoadingMoneyOperationScreen(
                 verticalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxHeight(),
                 horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Filled.AirplaneTicket, contentDescription = "")
+                Icon(Icons.Rounded.ConfirmationNumber, contentDescription = "")
 
                 if (isPaying) {
-
                     Text(text = if(operationIsSuccessful!!) "$sum ₽" else "",
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
@@ -205,6 +206,7 @@ fun LoadingMoneyOperationScreen(
                         color = Color.White)
                     Text(text = if(operationIsSuccessful)"Пополнение баланса прошло успешно" else "Пополнение баланса не удалось :(",
                         fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
                         fontSize = 20.sp,
                         color = Color.White)
                     Button(onClick = {

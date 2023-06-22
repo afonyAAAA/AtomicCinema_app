@@ -42,6 +42,7 @@ import com.example.atomic_cinema.navigation.NavRoutes
 import com.example.atomic_cinema.server.auth.AuthResult
 import com.example.atomic_cinema.server.movie.MovieResult
 import com.example.atomic_cinema.server.seance.SeanceResult
+import com.example.atomic_cinema.server.ticket.TicketResults
 import com.example.atomic_cinema.stateClasses.FilterMovieState
 import com.example.atomic_cinema.stateClasses.MovieState
 import com.example.atomic_cinema.stateClasses.SeanceState
@@ -393,7 +394,7 @@ fun UpdateMovie(
                     Button(onClick = {
                         alertDialogIsVisible = false
                     }) {
-                        Text(text = "Потвердить")
+                        Text(text = "Подтвердить")
                     }
                 }
             }
@@ -783,7 +784,7 @@ fun AddMovie(
                     Button(onClick = {
                         alertDialogIsVisible = false
                     }) {
-                        Text(text = "Потвердить")
+                        Text(text = "Подтвердить")
                     }
                 }
             }
@@ -1141,7 +1142,7 @@ fun AddSeance(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            Spacer(Modifier.height(50.dp))
+            Spacer(Modifier.height(5.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -1180,7 +1181,6 @@ fun AddSeance(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(10.dp),
-                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ){
                 Button(onClick = {
@@ -1841,6 +1841,7 @@ fun ViewSeancesCinema(
     viewModelT: TicketViewModel = hiltViewModel(),
     viewModelC: CinemaViewModel = hiltViewModel(),
 ){
+    val context = LocalContext.current
     val stateCinema = viewModelC.state
     val stateSeance = viewModelS.state
     val listSeanceState = viewModelS.listSeance
@@ -1851,6 +1852,22 @@ fun ViewSeancesCinema(
     LaunchedEffect(Support.copyCinemaState){
         viewModelS.onEvent(SeanceUIEvent.GetSeancesCinema(Support.copyCinemaState.addressCinema))
         viewModelC.onEvent(CinemaUIEvent.AddressCinemaChanged(Support.copyCinemaState.addressCinema))
+    }
+
+    LaunchedEffect(viewModelT, context) {
+        viewModelT.ticketResults.collect { result ->
+            when (result) {
+                is TicketResults.NotFoundTickets -> {
+                    Toast.makeText(
+                        context, "Доступных билетов нет",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                else ->{
+
+                }
+            }
+        }
     }
 
     Column(Modifier
@@ -1952,7 +1969,7 @@ fun ViewSeancesCinema(
                               },
                     enabled = loginCustomer.isNotBlank())
                 {
-                    Text(text = "Потвердить")
+                    Text(text = "Подтвердить")
                 }
             },
             dismissButton = {

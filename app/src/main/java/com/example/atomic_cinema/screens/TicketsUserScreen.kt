@@ -60,10 +60,10 @@ fun TicketsUserScreen(
         viewModelT.ticketResults.collect{ result ->
             when(result){
                 is TicketResults.UnknownError -> {
-                    Toast.makeText(
-                        context,
-                        "Неизвестная ошибка, попробуйте снова позже",
-                        Toast.LENGTH_LONG).show()
+//                    Toast.makeText(
+//                        context,
+//                        "Неизвестная ошибка, попробуйте снова позже",
+//                        Toast.LENGTH_LONG).show()
                 }
                 is TicketResults.OK -> {}
                 is TicketResults.Unauthorized -> {}
@@ -72,6 +72,9 @@ fun TicketsUserScreen(
                         context,
                         "Недостаточно средств. Оплата не удалась.",
                         Toast.LENGTH_LONG).show()
+                }
+                is TicketResults.NotFoundTickets -> {
+
                 }
                 else -> {}
             }
@@ -144,10 +147,15 @@ fun TicketsUserScreen(
                     ageRating = stateTicket.ageRating
                 )
 
+                val timeStartParse = LocalTime.parse(stateTicket.timeStart, DateTimeFormatter.ofPattern("HH:mm"))
+                val timeEndParse = LocalTime.parse(stateTicket.timeEnd,DateTimeFormatter.ofPattern("HH:mm"))
+                val selectedDateSeanceParse = LocalDate.parse(stateTicket.dateStartSeance, DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+
                 val infoSeance = SeanceState(
                     addressCinema = stateTicket.addressCinema,
-                    timeStart = LocalTime.parse(stateTicket.timeStart, DateTimeFormatter.ofPattern("HH:mm")),
-                    timeEnd = LocalTime.parse(stateTicket.timeEnd,DateTimeFormatter.ofPattern("HH:mm")),
+                    timeStart = timeStartParse,
+                    timeEnd = timeEndParse,
+                    selectedDateSeance = selectedDateSeanceParse,
                     price = stateTicket.price,
                     typeHall = stateTicket.nameTypeHall
                 )
@@ -156,8 +164,7 @@ fun TicketsUserScreen(
                     mutableStateOf(
                         !stateTicket.returned &&
                                 stateTicket.nameStatus == "Оплачено" &&
-                                LocalDate.parse(stateTicket.dateStartSeance, DateTimeFormatter.ofPattern("dd.MM.yyyy")) >= LocalDate.now() &&
-                                infoSeance.timeStart!!.toKotlinLocalTime() > LocalTime.now().toKotlinLocalTime())
+                                selectedDateSeanceParse>= LocalDate.now())
                 }
 
                 Column(
@@ -210,7 +217,9 @@ fun TicketsUserScreen(
                                 onClick = {
                                     viewModelP.onEvent(ProfileUIEvent.ConfirmReplenish((stateTicket.price * stateTicket.count)))
                                           },
-                                enabled = isTicketCanReturn
+                                enabled = isTicketCanReturn && if(selectedDateSeanceParse == LocalDate.now()){
+                                    timeStartParse > LocalTime.now()
+                                } else true
                             ) {
                                 Text("Вернуть билет")
                             }

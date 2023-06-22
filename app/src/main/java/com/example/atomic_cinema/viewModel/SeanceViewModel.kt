@@ -252,6 +252,4 @@ class SeanceViewModel @Inject constructor(
             state = state.copy(isLoading = false)
         }
     }
-
-
 }

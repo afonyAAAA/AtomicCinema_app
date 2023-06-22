@@ -25,6 +25,8 @@ import com.example.atomic_cinema.MainActivity
 import com.example.atomic_cinema.events.AuthUIEvent
 import com.example.atomic_cinema.navigation.NavRoutes
 import com.example.atomic_cinema.server.auth.AuthResult
+import com.example.atomic_cinema.utils.AppFinisher
+import com.example.atomic_cinema.utils.FinishListener
 import com.example.atomic_cinema.utils.LoadingScreen
 import com.example.atomic_cinema.utils.RoundedTextField
 import com.example.atomic_cinema.viewModel.AuthViewModel
@@ -65,6 +67,10 @@ fun AuthorizationScreen(
 
                     val intent = Intent(context, MainActivity::class.java)
                     context.startActivity(intent)
+
+                    navHostController.navigate(NavRoutes.Main.route, NavOptions.Builder()
+                        .setPopUpTo(NavRoutes.Main.route, true).build())
+
                 }
                 is AuthResult.Registered -> {
                     Toast.makeText(
@@ -142,7 +148,7 @@ fun AuthorizationScreen(
                 onClick = {viewModelAuth.onEvent(AuthUIEvent.SignIn)},
                 Modifier.padding(16.dp),
                 enabled = buttonIsEnabled) {
-                Text(text = "Потвердить")
+                Text(text = "Подтвердить")
             }
 
             Text(text = "Ещё не зарегистрированы?", fontSize = 12.sp)

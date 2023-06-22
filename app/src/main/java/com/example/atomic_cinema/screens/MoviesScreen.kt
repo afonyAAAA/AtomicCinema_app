@@ -710,17 +710,19 @@ fun FilterTab(state : FilterMovieState, viewModel: MovieViewModel){
     val listYear = (1900.. LocalDateTime.now().year).reversed().toList()
 
     Column{
-        ExposedDropdownMenuBox(
-            expanded = state.expandedListGenreTextField,
-            onExpandedChange = {
-                viewModel.onEventFilterMovie(MovieFilterUIEvent.ExpandedTextFieldGenresChanged(!state.expandedListGenreTextField))
-            }
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly) {
+
+            ExposedDropdownMenuBox(
+                expanded = state.expandedListGenreTextField,
+                onExpandedChange = {
+                    viewModel.onEventFilterMovie(MovieFilterUIEvent.ExpandedTextFieldGenresChanged(!state.expandedListGenreTextField))
+                }
+            ) {
                 RoundedTextField(
                     label = "Жанры",
-                    value = state.selectedGenreList.filter { it.isChoice }.map { it.nameGenre }.joinToString(), placeholder = "Выберите жанр",
-                    onValueChange ={},
+                    value = state.selectedGenreList.filter { it.isChoice }.map { it.nameGenre }
+                        .joinToString(), placeholder = "Выберите жанр",
+                    onValueChange = {},
                     readOnly = true,
                     trailingIcon = {
                         ExposedDropdownMenuDefaults.TrailingIcon(
@@ -728,51 +730,53 @@ fun FilterTab(state : FilterMovieState, viewModel: MovieViewModel){
                         )
                     }
                 )
-                if(state.selectedGenreList.filter { it.isChoice }.isNotEmpty()){
-                    IconButton(onClick = {viewModel.onEventFilterMovie(MovieFilterUIEvent.ClearSelectedGenres)}) {
-                        Icon(Icons.Filled.Close, "")
-                    }
-                }
-            }
-            ExposedDropdownMenu(
-                expanded = state.expandedListGenreTextField,
-                onDismissRequest = {
-                    viewModel.onEventFilterMovie(MovieFilterUIEvent.ExpandedTextFieldGenresChanged(false))
-                }) {
-                if(state.isLoading){
-                    Row(horizontalArrangement = Arrangement.Center) {
-                        CircularProgressIndicator()
-                    }
-                }else{
-                    state.selectedGenreList.forEach { genre ->
-                        DropdownMenuItem(onClick = {
-                        }) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(text = genre.nameGenre)
+                ExposedDropdownMenu(
+                    expanded = state.expandedListGenreTextField,
+                    onDismissRequest = {
+                        viewModel.onEventFilterMovie(MovieFilterUIEvent.ExpandedTextFieldGenresChanged(
+                            false))
+                    }) {
+                    if (state.isLoading) {
+                        Row(horizontalArrangement = Arrangement.Center) {
+                            CircularProgressIndicator()
+                        }
+                    } else {
+                        state.selectedGenreList.forEach { genre ->
+                            DropdownMenuItem(onClick = {
+                            }) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(text = genre.nameGenre)
 
-                                Checkbox(checked = genre.isChoice,
-                                    onCheckedChange = {
-                                    viewModel.onEventFilterMovie(MovieFilterUIEvent.GenreChanged(
-                                        state.selectedGenreList.indexOf(genre), it
-                                    ))
-                                },
-                                    colors = CheckboxDefaults.colors(MaterialTheme.colors.primary)
-                                )
+                                    Checkbox(checked = genre.isChoice,
+                                        onCheckedChange = {
+                                            viewModel.onEventFilterMovie(MovieFilterUIEvent.GenreChanged(
+                                                state.selectedGenreList.indexOf(genre), it
+                                            ))
+                                        },
+                                        colors = CheckboxDefaults.colors(MaterialTheme.colors.primary)
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
+            if (state.selectedGenreList.filter { it.isChoice }.isNotEmpty()) {
+                IconButton(onClick = { viewModel.onEventFilterMovie(MovieFilterUIEvent.ClearSelectedGenres) }) {
+                    Icon(Icons.Filled.Close, "")
+                }
+            }
         }
-
-        ExposedDropdownMenuBox(
-            expanded = state.expandedListAgeTextField,
-            onExpandedChange = {viewModel.onEventFilterMovie(MovieFilterUIEvent.ExpandedTextFieldAgeChanged(!state.expandedListAgeTextField))}
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly) {
+            ExposedDropdownMenuBox(
+                expanded = state.expandedListAgeTextField,
+                onExpandedChange = {
+                    viewModel.onEventFilterMovie(MovieFilterUIEvent.ExpandedTextFieldAgeChanged(!state.expandedListAgeTextField))
+                }
+            ) {
                 RoundedTextField(
                     label = "Возратсной рейтинг",
-                    value = if(state.selectedAgeRating == -1) "" else "+" + state.selectedAgeRating,
+                    value = if (state.selectedAgeRating == -1) "" else state.selectedAgeRating.toString() + "+",
                     placeholder = "",
                     onValueChange = {},
                     readOnly = true,
@@ -782,40 +786,43 @@ fun FilterTab(state : FilterMovieState, viewModel: MovieViewModel){
                         )
                     }
                 )
-                if(state.selectedAgeRating != -1){
-                    IconButton(onClick = {viewModel.onEventFilterMovie(MovieFilterUIEvent.AgeRatingChanged(-1))}) {
-                        Icon(Icons.Filled.Close, "")
+                ExposedDropdownMenu(
+                    expanded = state.expandedListAgeTextField, onDismissRequest =
+                    {
+                        viewModel.onEventFilterMovie(MovieFilterUIEvent.ExpandedTextFieldAgeChanged(
+                            false))
+                    }
+                ) {
+                    listAgeRating.forEach { age ->
+                        DropdownMenuItem(onClick = {
+                            viewModel.onEventFilterMovie(MovieFilterUIEvent.ExpandedTextFieldYearChanged(
+                                false))
+                            viewModel.onEventFilterMovie(MovieFilterUIEvent.AgeRatingChanged(age))
+                        }
+                        ) {
+                            Text(text = "$age+")
+                        }
                     }
                 }
             }
-
-            ExposedDropdownMenu(
-                expanded = state.expandedListAgeTextField, onDismissRequest =
-                {
-                    viewModel.onEventFilterMovie(MovieFilterUIEvent.ExpandedTextFieldAgeChanged(false))
-                }
-            ) {
-                listAgeRating.forEach { age ->
-                    DropdownMenuItem(onClick = {
-                        viewModel.onEventFilterMovie(MovieFilterUIEvent.ExpandedTextFieldYearChanged(false))
-                        viewModel.onEventFilterMovie(MovieFilterUIEvent.AgeRatingChanged(age))}
-                    ) {
-                        Text(text = "+$age")
-                    }
+            if (state.selectedAgeRating != -1) {
+                IconButton(onClick = {
+                    viewModel.onEventFilterMovie(MovieFilterUIEvent.AgeRatingChanged(-1))
+                }) {
+                    Icon(Icons.Filled.Close, "")
                 }
             }
         }
-
-        ExposedDropdownMenuBox(
-            expanded = state.expandedListYearTextField,
-            onExpandedChange = {
-                viewModel.onEventFilterMovie(MovieFilterUIEvent.ExpandedTextFieldYearChanged(!state.expandedListYearTextField))
-            }
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly) {
+            ExposedDropdownMenuBox(
+                expanded = state.expandedListYearTextField,
+                onExpandedChange = {
+                    viewModel.onEventFilterMovie(MovieFilterUIEvent.ExpandedTextFieldYearChanged(!state.expandedListYearTextField))
+                }
+            ) {
                 RoundedTextField(
                     label = "Год выпуска",
-                    value = if(state.selectedYearIssue == 0) "" else state.selectedYearIssue.toString(),
+                    value = if (state.selectedYearIssue == 0) "" else state.selectedYearIssue.toString(),
                     placeholder = "",
                     onValueChange = {},
                     readOnly = true,
@@ -825,26 +832,31 @@ fun FilterTab(state : FilterMovieState, viewModel: MovieViewModel){
                         )
                     }
                 )
-                if(state.selectedYearIssue != 0){
-                    IconButton(onClick = {viewModel.onEventFilterMovie(MovieFilterUIEvent.YearOfIssueChanged(0))}) {
-                        Icon(Icons.Filled.Close, "")
+
+                ExposedDropdownMenu(
+                    expanded = state.expandedListYearTextField, onDismissRequest =
+                    {
+                        viewModel.onEventFilterMovie(MovieFilterUIEvent.ExpandedTextFieldYearChanged(
+                            false))
+                    }
+                ) {
+                    listYear.forEach { year ->
+                        DropdownMenuItem(onClick = {
+                            viewModel.onEventFilterMovie(MovieFilterUIEvent.ExpandedTextFieldYearChanged(
+                                false))
+                            viewModel.onEventFilterMovie(MovieFilterUIEvent.YearOfIssueChanged(year))
+                        }) {
+                            Text(text = year.toString())
+                        }
                     }
                 }
             }
 
-            ExposedDropdownMenu(
-                expanded = state.expandedListYearTextField, onDismissRequest =
-                {
-                    viewModel.onEventFilterMovie(MovieFilterUIEvent.ExpandedTextFieldYearChanged(false))
-                }
-            ) {
-                listYear.forEach { year ->
-                    DropdownMenuItem(onClick = {
-                        viewModel.onEventFilterMovie(MovieFilterUIEvent.ExpandedTextFieldYearChanged(false))
-                        viewModel.onEventFilterMovie(MovieFilterUIEvent.YearOfIssueChanged(year))
-                    }) {
-                        Text(text = year.toString())
-                    }
+            if (state.selectedYearIssue != 0) {
+                IconButton(onClick = {
+                    viewModel.onEventFilterMovie(MovieFilterUIEvent.YearOfIssueChanged(0))
+                }) {
+                    Icon(Icons.Filled.Close, "")
                 }
             }
         }

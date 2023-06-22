@@ -8,6 +8,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -93,7 +94,13 @@ fun ProfileScreen(
                         "Неизвестная ошибка, попробуйте снова позже",
                         Toast.LENGTH_LONG).show()
                 }
-                is ProfileResult.Edited -> TODO()
+                is ProfileResult.Edited -> {
+                    Toast.makeText(
+                        context, "Профиль обновлён.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    viewModel.onEvent(ProfileUIEvent.EditMode(false))
+                }
                 is ProfileResult.MoneyOperationIsSuccessful -> {
                     viewModel.onEvent(ProfileUIEvent.MoneyOperationIsSuccessful(true))
                 }
@@ -103,7 +110,6 @@ fun ProfileScreen(
                         "Сумма пополнения должна быть больше 100 руб.",
                         Toast.LENGTH_LONG).show()
                 }
-                is ProfileResult.InsufficientFunds -> TODO()
                 is ProfileResult.NotFoundTicketsForMonth -> {
 
                     Toast.makeText(
@@ -114,6 +120,8 @@ fun ProfileScreen(
                     textAboutPayments = "Увы, за этот месяц не было трат"
                 }
                 is ProfileResult.MoneyReturnISSuccessful -> {}
+                else -> {}
+
             }
         }
     }
@@ -204,7 +212,7 @@ fun ProfileScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .horizontalScroll(rememberScrollState()),
+                        .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
@@ -311,7 +319,7 @@ fun ProfileScreen(
                             },
                             enabled = buttonIsEnabled && state != copyState
                         ) {
-                            Text(text = "Потвердить")
+                            Text(text = "Подтвердить")
                         }
                         if(!buttonIsEnabled){
                             Text(text = "Проверьте правильность введенных данных:" +
@@ -384,7 +392,11 @@ fun ProfileScreen(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                         placeholder = "Введите номер карты",
                         visualTransformation = MaskNumberCard(),
-                        onValueChange = {numberCard = it})
+                        onValueChange = {
+                            if(maxCharNumberCard >= it.length){
+                                numberCard = it
+                            }
+                        })
 
                     Spacer(Modifier.height(20.dp))
 

@@ -80,12 +80,6 @@ fun TicketsScreen(
                     navHostController.navigate(NavRoutes.Authorization.route,
                         NavOptions.Builder().setPopUpTo(NavRoutes.Main.route, true).build())
                 }
-                is TicketResults.InsufficientFunds -> {
-                    Toast.makeText(
-                        context,
-                        "Недостаточно средств. Покупка не удалась.",
-                        Toast.LENGTH_LONG).show()
-                }
                 else -> {}
             }
         }
@@ -100,6 +94,12 @@ fun TicketsScreen(
                 is ProfileResult.MoneyOperationIsSuccessful -> {
                     viewModelP.onEvent(ProfileUIEvent.MoneyOperationIsSuccessful(true))
                     viewModelT.onEvent(TicketUIEvent.ConfirmTicket(seanceState))
+                }
+                is ProfileResult.InsufficientFunds -> {
+                    Toast.makeText(
+                        context,
+                        "Недостаточно средств. Покупка не удалась.",
+                        Toast.LENGTH_LONG).show()
                 }
                 else -> {
 
@@ -184,7 +184,7 @@ fun TicketsScreen(
             } else{
                 seanceState.selectedDateSeance > LocalDate.now()
             }){
-                Text(text = "Потвердить")
+                Text(text = "Подтвердить")
             }
             if(seanceState.selectedDateSeance == LocalDate.now()) {
                 if (seanceState.timeStart!!.toKotlinLocalTime() <= LocalTime.now().toKotlinLocalTime()){

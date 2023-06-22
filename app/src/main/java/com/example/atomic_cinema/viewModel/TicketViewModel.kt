@@ -86,14 +86,8 @@ class TicketViewModel @Inject constructor(
 
             }
             TicketUIEvent.ReturnTicket -> {
-                updateTicket(UpdateTicketRequest(
-                    idTicket = state.idTicket,
-                    returned = true
-                ))
-
-                getTicketsUser()
-
-                state.copy(detailsTicketChanged = false)
+                returnTicket()
+                state
             }
             is TicketUIEvent.ConfirmTicketWithoutPay -> {
                 addTicket(
@@ -147,40 +141,32 @@ class TicketViewModel @Inject constructor(
                 listStateTicket.clear()
             }
 
-            val formatterDate = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss")
-            val formatterTime = DateTimeFormatter.ofPattern("HH:mm")
-
             val result = repository.getTicketsUser(request)
 
             if(result.data != null){
                 result.data.forEach { ticket ->
-                    listStateTicket.add(
-                        TicketState(
-                            idUser = ticket.idUser,
-                            idSeance = ticket.idSeance,
-                            idTicket = ticket.id,
-                            returned = ticket.returned,
-                            nameStatus = ticket.nameStatus,
-                            nameMovie = ticket.nameMovie,
-                            nameTypeHall = ticket.nameTypeHall,
-                            count = ticket.count,
-                            linkImage = ticket.linkImage,
-                            addressCinema = ticket.addressCinema,
-                            ageRating = ticket.ageRating,
-                            timeEnd = LocalTime.parse(ticket.timeEnd, formatterTime).toString(),
-                            timeStart = LocalTime.parse(ticket.timeStart, formatterTime).toString(),
-                            duration = ticket.duration,
-                            price = ticket.price,
-                            dateTime = LocalDateTime.parse(ticket.dateTime, formatterDate),
-                            dateStartSeance = ticket.dateStartSeance
-                        )
-                    )
+                    listStateTicket.add(TicketState(idSeance = ticket.idSeance))
                 }
             }else{
                 resultChannel.send(TicketResults.NotFoundTickets())
             }
 
             state = state.copy(isLoading = false)
+        }
+    }
+
+    private fun returnTicket(){
+        viewModelScope.launch {
+            state = state.copy(isLoading = true)
+
+            updateTicket(UpdateTicketRequest(
+                idTicket = state.idTicket,
+                returned = true
+            ))
+
+            getTicketsUser()
+
+            state = state.copy(isLoading = true, detailsTicketChanged = false)
         }
     }
 
@@ -197,8 +183,6 @@ class TicketViewModel @Inject constructor(
             state = state.copy(isLoading = false)
         }
     }
-
-
 
     private fun addTicket(ticket : AddTicketRequest){
         viewModelScope.launch {

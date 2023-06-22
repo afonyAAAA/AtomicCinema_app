@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.getSystemService
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavOptions
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.atomic_cinema.events.AuthUIEvent
@@ -442,7 +443,8 @@ fun ListItemsEmployeeJob(
                     scaffoldState.drawerState.close()
                 }
                 viewModelAuth.onEvent(AuthUIEvent.GoOut)
-                navHostController.navigate(NavRoutes.Authorization.route)
+                navHostController.navigate(NavRoutes.Authorization.route,
+                    NavOptions.Builder().setPopUpTo(NavRoutes.Main.route, true).build())
             },
         elevation = 5.dp,
         shape = RoundedCornerShape(20.dp)

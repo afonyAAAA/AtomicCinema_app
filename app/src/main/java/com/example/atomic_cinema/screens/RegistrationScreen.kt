@@ -1,6 +1,7 @@
 package com.example.atomic_cinema.screens
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -28,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavOptions
+import com.example.atomic_cinema.MainActivity
 import com.example.atomic_cinema.events.AuthUIEvent
 import com.example.atomic_cinema.navigation.NavRoutes
 import com.example.atomic_cinema.server.auth.AuthResult
@@ -45,6 +47,8 @@ fun RegistrationScreen(
     val context = LocalContext.current
 
     val maxCharLogin = 30
+    val minCharLogin = 5
+    val minCharPassword = 8
     val maxCharPassword = 35
     val maxCharDate = 8
     val maxCharNumberPhone = 11
@@ -75,11 +79,25 @@ fun RegistrationScreen(
                         "Вы успешно зарегистрировались",
                         Toast.LENGTH_LONG).show()
 
-                    navHostController.navigate(NavRoutes.Authorization.route,
-                        NavOptions.Builder().setPopUpTo(NavRoutes.Main.route, true).build())
+                    viewModel.onEvent(AuthUIEvent.SignInLoginChanged(viewModel.state.signUpLoginChanged))
+                    viewModel.onEvent(AuthUIEvent.SignInPasswordChanged(viewModel.state.signUpPasswordChanged))
+                    viewModel.onEvent(AuthUIEvent.SignIn)
+                }
+                is AuthResult.Authorized -> {
+                    val intent = Intent(context, MainActivity::class.java)
+                    context.startActivity(intent)
+
+                    navHostController.navigate(NavRoutes.Main.route, NavOptions.Builder()
+                        .setPopUpTo(NavRoutes.Main.route, true).build())
+                }
+                is AuthResult.UserIsAlreadyExist -> {
+
                 }
                 else -> {
-
+                    Toast.makeText(
+                        context,
+                        "Данный логин уже занят",
+                        Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -90,13 +108,18 @@ fun RegistrationScreen(
                 state.signUpLastNameChanged.length
 
         buttonIsEnabled = state.signUpLoginChanged.isNotBlank() &&
+                state.signUpLoginChanged.length <= maxCharLogin &&
+                state.signUpLoginChanged.length >= minCharLogin &&
             state.signUpPasswordChanged.isNotBlank() &&
+                state.signUpPasswordChanged.length <= maxCharPassword &&
+                state.signUpPasswordChanged.length >= minCharPassword &&
             state.signUpFirstNameChanged.isNotBlank() &&
             state.signUpNameChanged.isNotBlank() &&
             state.signUpLastNameChanged.isNotBlank() &&
             state.signUpNumberPhoneChanged.isNotBlank() &&
             state.signUpDateOfBirthChanged.isNotBlank() &&
                 lengthFIO <= maxCharFIO
+
     }
 
     if(state.isLoading){
@@ -117,7 +140,9 @@ fun RegistrationScreen(
                         notNull = true,
                         value = state.signUpLoginChanged,
                         onValueChange = {
-                            viewModel.onEvent(AuthUIEvent.SignUpLoginChanged(it))
+                            if(it.length <= maxCharLogin){
+                                viewModel.onEvent(AuthUIEvent.SignUpLoginChanged(it))
+                            }
                         })
 
                     RoundedTextField(
@@ -135,7 +160,11 @@ fun RegistrationScreen(
                         },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         value = state.signUpPasswordChanged,
-                        onValueChange = {viewModel.onEvent(AuthUIEvent.SignUpPasswordChanged(it))}
+                        onValueChange = {
+                            if(it.length <= maxCharPassword){
+                                viewModel.onEvent(AuthUIEvent.SignUpPasswordChanged(it))
+                            }
+                        }
                     )
 
                     RoundedTextField(
@@ -213,14 +242,16 @@ fun RegistrationScreen(
                 }
                 if(!buttonIsEnabled){
                     Text(text = "Проверьте правильность введенных данных:" +
-                            "\n 1. ФИО не должно превышать 50 символов " +
-                            "\n 2. Все поля должны быть заполнены",
+                            "\n 1. ФИО не должно превышать $maxCharFIO " +
+                            "\n 2. Минимальная длина пароля: $minCharPassword" +
+                            "\n 3. Минимальная длина логина: $minCharLogin"+
+                            "\n 4. Все поля должны быть заполнены",
                         color = Color.Gray,
                         fontSize = 15.sp,
                         textAlign = TextAlign.Left)
                 }
 
-                Spacer(Modifier.height(50.dp))
+                Spacer(Modifier.height(70.dp))
            }
             if(showDatePicker) {
                 DatePicker(onValueChange = {viewModel.onEvent(

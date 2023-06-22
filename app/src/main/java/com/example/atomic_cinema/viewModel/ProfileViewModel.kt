@@ -207,7 +207,6 @@ class ProfileViewModel @Inject constructor(
                 }
             )
 
-
             val result = repository.editProfile(
                 firstName = state.firstNameChanged,
                 name = state.nameChanged,
@@ -217,6 +216,7 @@ class ProfileViewModel @Inject constructor(
             )
 
             resultChannel.send(result)
+
             showProfile()
 
             state = state.copy(isLoading = false)

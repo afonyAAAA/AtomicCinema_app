@@ -62,6 +62,7 @@ class MainViewModel @Inject constructor(
                 sumMoney = result.data?.sumMoney ?: "",
                 sumTickets = result.data?.sumTickets ?: ""
             )
+
             if(stateDetailsRevenue.sumMoney != ""){
                 resultChannelCinema.send(CinemaResults.OK())
             }else{
@@ -71,6 +72,8 @@ class MainViewModel @Inject constructor(
             stateDetailsRevenue = stateDetailsRevenue.copy(isLoading = false)
         }
     }
+
+
 
     private fun getNews(){
         viewModelScope.launch {
@@ -84,15 +87,13 @@ class MainViewModel @Inject constructor(
 
             if(news.data != null){
                 news.data.articles.forEach{ news ->
-                    state = state.copy(
+                    listStateNews.add(NewsState(
                         title = news.title!!,
                         linkImage = news.urlToImage.toString(),
                         description = news.description!!,
                         linkNews = news.url!!
-                    )
-                    listStateNews.add(state)
+                    ))
                 }
-
             }else{
                 resultChannel.send(NewsResults.UnknownError())
             }
@@ -100,5 +101,4 @@ class MainViewModel @Inject constructor(
             state = state.copy(isLoading = false)
         }
     }
-
 }
