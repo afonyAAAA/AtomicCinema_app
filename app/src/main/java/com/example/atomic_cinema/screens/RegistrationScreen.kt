@@ -51,7 +51,7 @@ fun RegistrationScreen(
     val minCharPassword = 8
     val maxCharPassword = 35
     val maxCharDate = 8
-    val maxCharNumberPhone = 11
+    val maxCharNumberPhone = 10
     val maxCharFIO = 50
 
     var showDatePicker by remember { mutableStateOf(false) }

@@ -20,6 +20,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavOptions
+import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import coil.size.Size
@@ -358,16 +361,47 @@ fun ListElementMovie(movie : MovieState){
                         .width(175.dp)
                         .padding(end = 25.dp)
                 )
-                Image(
-                    painter = painter,
-                    contentDescription = "",
-                    contentScale = ContentScale.Fit,
-                    alignment = Alignment.Center,
-                    modifier = Modifier
-                        .height(250.dp)
-                        .width(200.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                )
+                when(painter.state) {
+                    AsyncImagePainter.State.Empty -> {
+
+                    }
+                    is AsyncImagePainter.State.Loading -> {
+                        Box(modifier = Modifier
+                            .heightIn(min = 200.dp, max = 250.dp)
+                            .widthIn(min = 100.dp, max = 150.dp))
+                        {
+                            CircularProgressIndicator()
+                        }
+                    }
+                    is AsyncImagePainter.State.Success -> {
+                        Image(
+                            painter = painter,
+                            contentDescription = "",
+                            modifier = Modifier
+                                .heightIn(min = 200.dp, max = 250.dp)
+                                .widthIn(min = 100.dp, max = 150.dp),
+                            Alignment.Center,
+                            contentScale = ContentScale.Fit,
+                        )
+                    }
+                    is AsyncImagePainter.State.Error -> {
+                        Icon(Icons.Filled.Error,
+                            "",
+                            modifier = Modifier.heightIn(min = 200.dp, max = 250.dp)
+                                .widthIn(min = 100.dp, max = 150.dp),
+                        tint = Color.White)
+                    }
+                }
+//                Image(
+//                    painter = painter,
+//                    contentDescription = "",
+//                    contentScale = ContentScale.Fit,
+//                    alignment = Alignment.Center,
+//                    modifier = Modifier
+//                        .height(250.dp)
+//                        .width(200.dp)
+//                        .clip(RoundedCornerShape(10.dp))
+//                )
             }
         }
 
@@ -383,9 +417,6 @@ fun ModalBottomSheetNewsList(
     viewModelMain: MainViewModel,
     content: @Composable () -> Unit
 ){
-
-    val scope = rememberCoroutineScope()
-
     val bottomSheetState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.HalfExpanded,
         skipHalfExpanded = false
@@ -402,19 +433,6 @@ fun ModalBottomSheetNewsList(
         orientation = Orientation.Vertical
     )
 
-    LaunchedEffect(bottomSheetState.currentValue){
-        when(bottomSheetState.currentValue){
-            ModalBottomSheetValue.Hidden -> {
-
-            }
-            ModalBottomSheetValue.Expanded -> {
-
-            }
-            ModalBottomSheetValue.HalfExpanded -> {
-
-            }
-        }
-    }
 
 //    if(stateNews.bottomSheetValue){
 //        scope.launch { bottomSheetState.animateTo(ModalBottomSheetValue.HalfExpanded) }
@@ -502,9 +520,8 @@ fun ListElementNews(news : NewsState){
                     modifier = Modifier.padding(start = 5.dp, end = 5.dp, bottom =5.dp))
             }
 
-            Spacer(modifier = Modifier.height(15.dp))
-
             Text(text = news.description, Modifier.padding(10.dp))
+
         }
     }
 }

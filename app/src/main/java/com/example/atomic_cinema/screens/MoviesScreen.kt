@@ -13,10 +13,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.ErrorOutline
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -136,6 +133,12 @@ fun MoviesScreen(
 
                     viewModelS.onEvent(SeanceUIEvent.PlaceHolderChanged(false))
                 }
+                is SeanceResult.NotFoundSeances -> {
+                    Toast.makeText(
+                        context,
+                        "На данный момент нет грядущих сеансов на этот фильм.",
+                        Toast.LENGTH_LONG).show()
+                }
                 else -> {
 
                 }
@@ -229,7 +232,8 @@ fun MoviesScreen(
                                             painter = painter,
                                             contentDescription = "",
                                             modifier = Modifier
-                                                .height(200.dp).width(150.dp)
+                                                .height(200.dp)
+                                                .width(150.dp)
                                                 .clip(RoundedCornerShape(topStart = 10.dp,
                                                     bottomStart = 10.dp)),
                                             Alignment.CenterStart,
@@ -380,6 +384,8 @@ fun DetailsMovie(
                                                 fontSize = 16.sp)
 
                                             Text("Тип зала: ${seance.typeHall}")
+
+
                                         }
                                     }
                                 }
@@ -398,13 +404,34 @@ fun DetailsMovie(
                     verticalArrangement = Arrangement.SpaceEvenly) {
 
                     Row{
-                        Image(
-                            painter = painter,
-                            contentDescription = "",
-                            modifier = Modifier.height(250.dp),
-                            Alignment.Center,
-                            contentScale = ContentScale.Fit,
-                        )
+                        when(painter.state){
+                            AsyncImagePainter.State.Empty -> {
+
+                            }
+                            is AsyncImagePainter.State.Loading -> {
+                                Box(modifier = Modifier
+                                    .heightIn(min = 200.dp, max = 250.dp)
+                                    .widthIn(min = 100.dp, max = 150.dp))
+                                {
+                                    CircularProgressIndicator()
+                                }
+                            }
+                            is AsyncImagePainter.State.Success -> {
+                                Image(
+                                    painter = painter,
+                                    contentDescription = "",
+                                    modifier = Modifier
+                                        .heightIn(min = 200.dp, max = 250.dp)
+                                        .widthIn(min = 100.dp, max = 150.dp),
+                                    Alignment.Center,
+                                    contentScale = ContentScale.Fit,
+                                )
+                            }
+                            is AsyncImagePainter.State.Error -> {
+                                Icon(Icons.Filled.Error, "", modifier = Modifier.heightIn(min = 200.dp, max = 250.dp)
+                                .widthIn(min = 100.dp, max = 150.dp))
+                            }
+                        }
                         Column(modifier = Modifier.padding(10.dp)){
 
                             Text(text = movieS.nameMovie,

@@ -144,6 +144,9 @@ class SeanceViewModel @Inject constructor(
                 addCalendarEvents()
 
                 resultChannel.send(SeanceResult.OK())
+
+            }else if (result is SeanceResult.NotFoundSeances){
+                resultChannel.send(SeanceResult.NotFoundSeances())
             }else{
                 resultChannel.send(SeanceResult.UnknownError())
             }

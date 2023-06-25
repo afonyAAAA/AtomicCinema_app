@@ -86,7 +86,7 @@ class MainViewModel @Inject constructor(
             val news = repository.getTopHeadlines()
 
             if(news.data != null){
-                news.data.articles.forEach{ news ->
+                news.data.articles.filter { it.source!!.name != "Lenta" }.forEach{ news ->
                     listStateNews.add(NewsState(
                         title = news.title!!,
                         linkImage = news.urlToImage.toString(),
